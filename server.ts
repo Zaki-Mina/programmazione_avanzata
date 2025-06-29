@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import GraphController from "./controllers/GraphController";
 import ConcreteGraphMediator from "./controllers/ConcreteGraphMediator";
 import GraphEntity from "./db/GraphEntity";
+import sequelize from "./db/sequelize"; 
 
 const app = express();
 const PORT = 3000;
@@ -18,10 +19,12 @@ graphController.setMediator(mediator);
 // Registra le rotte
 app.use("/", graphController.router);
 
-// Sincronizza il database (crea la tabella Graph se non esiste)
-GraphEntity.sync({ alter: true })
+//  Sviluppo: reset completo del DB
+sequelize
+  .drop()
+  .then(() => GraphEntity.sync({ force: true })) // ricrea GraphEntity
   .then(() => {
-    console.log(" Tabella 'Graph' sincronizzata correttamente.");
+    console.log(" Tabella 'Graph' cancellata e ricreata correttamente.");
 
     // Avvia il server
     app.listen(PORT, () => {

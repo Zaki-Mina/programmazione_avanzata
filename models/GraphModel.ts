@@ -32,10 +32,20 @@ export default class GraphModel {
     const statoCorrente = "Creato";
     this.transizione(statoCorrente);
   }
+
+async getRawGraph(): Promise<Record<string, Record<string, number>>> {
+  const graph = await GraphEntity.findByPk(this.id);
+  if (!graph) {
+    throw new Error(" Grafo non trovato nel DB");
+  }
+
+  return graph.data as Record<string, Record<string, number>>;
+};
 async getAll() {
   const graphs = await GraphEntity.findAll();
   return graphs.map((g) => g.toJSON());
 }
+
 
   getStato() {
     return this.state.getState();
