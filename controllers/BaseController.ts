@@ -1,5 +1,5 @@
 import { Router } from "express";
-import Mediator from "../interfaces/mediatorInterface";
+import { Mediator } from "../interfaces/mediatorInterface";
 
 export default abstract class BaseController {
   public abstract router: Router; // 

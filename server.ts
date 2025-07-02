@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 
 // Inizializza Mediator e Controller
 const mediator = new ConcreteGraphMediator();
-const graphController = new GraphController();
+const graphController = new GraphController(mediator);
 graphController.setMediator(mediator);
 
 // Registra le rotte

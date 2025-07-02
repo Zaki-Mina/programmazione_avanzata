@@ -57,7 +57,7 @@ async getAll() {
   }
 
   // Azione: aggiornare un peso tra due nodi
-  async updateGraphWeight(from: string, to: string, newWeight: number) {
+  async updateWeight(from: string, to: string, newWeight: number) {
     return await this.state.updateWeight(from, to, newWeight);
   }
 
