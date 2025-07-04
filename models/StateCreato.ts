@@ -10,62 +10,33 @@ class StateCreato implements GraphState {
     return "Creato";
   }
 
-
-async execute(start: string, goal: string) {
-  console.log(`🧠 Eseguo algoritmo da ${start} a ${goal}`);
-
-  const rawGraph = await this.context.getRawGraph(); // dal DB
-  const graph = new Graph(rawGraph);
-
-const result = graph.path(start, goal, { cost: true });
-
-if (!result) throw new Error("❌ Percorso non trovato");
-
-// Verifica se il risultato è nel formato { path, cost }
-if (Array.isArray(result)) {
-  // È solo un array di nodi → nessun costo disponibile
-  return {
-    stato: this.getState(),
-    percorso: result,
-    costo: null
-  };
-} else {
-  // È un oggetto { path, cost }
-  const { path, cost } = result;
-
-  return {
-    stato: this.getState(),
-    percorso: path,
-    costo: cost
-  };
-}
-}
-
-
-async updateWeight(from: string, to: string, newWeight: number): Promise<void> {
+async calcolaCosto(): Promise<number> {
   const dbGraph = await GraphEntity.findByPk(this.context.id);
-  if (!dbGraph) throw new Error("❌ Grafo non trovato nel DB");
+  if (!dbGraph) throw new Error("Grafo non trovato");
 
   const data = dbGraph.data as Record<string, Record<string, number>>;
+  const nodi = Object.keys(data).length;
+  const archi = Object.values(data).reduce(
+    (acc, edges) => acc + Object.keys(edges).length,
+    0
+  );
 
-  // Verifica che i nodi esistano
-  if (!data[from] || typeof data[from][to] !== "number") {
-    throw new Error(`❌ Arco da ${from} a ${to} non trovato nel grafo`);
-  }
-
-  // ✅ Modifica il peso
-  data[from][to] = newWeight;
-
-  // 🔄 Salva la modifica nel DB
-  dbGraph.data = data;
-  dbGraph.stato = "Modificato"; // Passa allo stato "Modificato"
+  const costo = 0.2 * nodi + 0.01 * archi;
+  dbGraph.costo = costo;
   await dbGraph.save();
 
-  console.log(`✅ Peso aggiornato: ${from} -> ${to} = ${newWeight}`);
+  return costo;
 }
+ async execute() {
+    throw new Error("Non puoi eseguire un grafo appena creato.");
+  }
 
-  simulate(from: string, to: string, startWeight: number, endWeight: number, step: number) {
-    throw new Error("⚠️ Non puoi simulare archi in stato 'Creato'");
+ async updateWeight() {
+    throw new Error("Non puoi modificare un grafo appena creato.");
+  }
+
+async simulate() {
+    throw new Error("Non puoi simulare  un grafo appena creato.");
   }
 }
 

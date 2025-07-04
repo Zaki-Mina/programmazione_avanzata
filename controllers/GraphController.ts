@@ -1,7 +1,7 @@
-//da sistemare alcune cose
 import { Router, Request, Response } from "express";
 import BaseController from "./BaseController";
 import { Mediator } from "../interfaces/mediatorInterface";
+import validateGraphMiddleware from "../validations/validateGraph";
 
 
 class GraphController extends BaseController {
@@ -18,7 +18,7 @@ class GraphController extends BaseController {
 
   private initializeRoutes() {
     this.router.post("/graphs/execute", this.executeGraph);
-    this.router.post("/graphs/create", this.createGraph);
+    this.router.post("/graphs/create", validateGraphMiddleware, this.createGraph.bind(this));
     this.router.get("/graphs", this.getGraphs);
     this.router.post("/update-weight", this.updateWeightHandler.bind(this)); 
   }

@@ -5,6 +5,9 @@ import ConcreteGraphMediator from "./controllers/ConcreteGraphMediator";
 import GraphEntity from "./db/GraphEntity";
 import sequelize from "./db/sequelize"; 
 
+import dotenv from "dotenv";
+dotenv.config();
+
 const app = express();
 const PORT = 3000;
 

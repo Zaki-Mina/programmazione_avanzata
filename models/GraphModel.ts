@@ -1,8 +1,18 @@
 import GraphEntity from "../db/GraphEntity";
 import { GraphState } from "../interfaces/graphState";
 import StateCreato from "./StateCreato";
+import StateModificato from "./StateModificato";
+import StateInEsecuzione from "./StateInEsecuzione";
 
 export default class GraphModel {
+  
+ async calcolaCosto(): Promise<number> {
+  if (typeof this.state.calcolaCosto !== "function") {
+    throw new Error(`Calcolo costo non supportato nello stato: ${this.getStato()}`);
+  }
+  return await this.state.calcolaCosto();
+}
+
   public id!: number;
   private state!: GraphState;
 
@@ -12,26 +22,31 @@ export default class GraphModel {
 
   // Transizione tra stati
   transizione(nuovoStato: string): void {
-    switch (nuovoStato) {
-      case "Creato":
-        this.state = new StateCreato(this);
-        break;
-      // case "Eseguito":
-      //   this.state = new StateEseguito(this);
-      //   break;
-      default:
-        throw new Error("Stato non gestito: " + nuovoStato);
-    }
+  switch (nuovoStato) {
+    case "Creato":
+      this.state = new StateCreato(this);
+      break;
+    case "Modificato":
+      this.state = new StateModificato(this);
+      break;
+    case "InEsecuzione":
+      this.state = new StateInEsecuzione(this);
+      break;
+    default:
+      throw new Error("Stato non gestito: " + nuovoStato);
   }
+}
 
-  // Inizializza lo stato attuale (simulato, in futuro da DB)
+  // Inizializza lo stato attuale ( recuperare lo stato reale dal database)
   async inizializza(id: number) {
-    this.id = id;
+  this.id = id;
 
-    // Simula lo stato del grafo dal "DB"
-    const statoCorrente = "Creato";
-    this.transizione(statoCorrente);
-  }
+  const entity = await GraphEntity.findByPk(id);
+  if (!entity) throw new Error("Grafo non trovato");
+
+  const statoCorrente = entity.stato;
+  this.transizione(statoCorrente);
+}
 
 async getRawGraph(): Promise<Record<string, Record<string, number>>> {
   const graph = await GraphEntity.findByPk(this.id);
@@ -57,9 +72,15 @@ async getAll() {
   }
 
   // Azione: aggiornare un peso tra due nodi
-  async updateWeight(from: string, to: string, newWeight: number) {
-    return await this.state.updateWeight(from, to, newWeight);
-  }
+async updateWeight(from: string, to: string, newWeight: number): Promise<number> {
+  // DELEGA al GraphState corrente (StateModificato)
+  const updated = await this.state.updateWeight(from, to, newWeight);
+  // facoltativo: se vuoi tenere traccia del nuovo stato nel modello
+  this.transizione("Modificato");
+  return updated;
+}
+
+
 
   // Azione: simulare variazioni di peso
   async simulateWeight(from: string, to: string, wStart: number, wEnd: number, step: number) {
