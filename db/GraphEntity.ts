@@ -6,15 +6,17 @@ interface GraphAttributes {
   stato: string;
   data: object;
   costo: number;
+  nome: string;
 }
 
 // tipi opzionali
-interface GraphCreationAttributes extends Optional<GraphAttributes, "id" | "stato" | "costo"> {}
+interface GraphCreationAttributes extends Optional<GraphAttributes, "id" | "stato" | "costo" |"nome"> {}
 class GraphEntity extends Model<GraphAttributes, GraphCreationAttributes> implements GraphAttributes {
   public id!: number;
   public stato!: string;
   public data!: object;
   public costo!: number;
+  public nome!: string;
 }
 
 GraphEntity.init(
@@ -24,6 +26,11 @@ GraphEntity.init(
       autoIncrement: true,
       primaryKey: true
     },
+    nome: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
     stato: {
       type: DataTypes.STRING,
       defaultValue: "Creato"

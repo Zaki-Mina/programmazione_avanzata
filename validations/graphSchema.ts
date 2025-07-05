@@ -1,19 +1,16 @@
-// Schema JSON per la validazione del grafo
-const graphSchema = {
+export const graphSchema = {
   type: "object",
-  patternProperties: {
-    "^[A-Za-z]+$": {
+  required: ["nome", "struttura"],
+  properties: {
+    nome: { type: "string", minLength: 1 },
+    struttura: {
       type: "object",
-      patternProperties: {
-        "^[A-Za-z]+$": {
-          type: "number",
-          minimum: 0
-        }
-      },
-      additionalProperties: false
+      minProperties: 1,
+      additionalProperties: {
+        type: "object",
+        additionalProperties: { type: "number", minimum: 0 }
+      }
     }
   },
   additionalProperties: false
 };
-
-export default graphSchema;

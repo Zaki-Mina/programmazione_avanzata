@@ -14,15 +14,19 @@ class StateInEsecuzione implements GraphState {
 async execute(start: string, goal: string) {
     const rawGraph = await this.context.getRawGraph();
     const graph = new Graph(rawGraph);
+    const startTime = Date.now();
     const result = graph.path(start, goal, { cost: true });
+    const endTime = Date.now();
 
     if (!result) throw new Error("Percorso non trovato");
+    const tempo = (endTime - startTime) / 1000;
 
     if (Array.isArray(result)) {
       return {
         stato: this.getState(),
         percorso: result,
         costo: null,
+        tempo
       };
     }
 

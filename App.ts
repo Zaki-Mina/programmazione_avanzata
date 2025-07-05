@@ -23,7 +23,7 @@ class App {
   public listen() {
     const port = process.env.PORT || 3000;
     this.app.listen(port, () => {
-      console.log(`✅ Server avviato su http://localhost:${port}`);
+      console.log(` Server avviato su http://localhost:${port}`);
     });
   }
 }

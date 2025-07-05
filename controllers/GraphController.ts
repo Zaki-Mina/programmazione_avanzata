@@ -2,7 +2,8 @@ import { Router, Request, Response } from "express";
 import BaseController from "./BaseController";
 import { Mediator } from "../interfaces/mediatorInterface";
 import validateGraphMiddleware from "../validations/validateGraph";
-
+import validateSimulationMiddleware from "../validations/validateSimulation";
+import { StatusCodes } from "http-status-codes";
 
 class GraphController extends BaseController {
   public router: Router;
@@ -21,6 +22,7 @@ class GraphController extends BaseController {
     this.router.post("/graphs/create", validateGraphMiddleware, this.createGraph.bind(this));
     this.router.get("/graphs", this.getGraphs);
     this.router.post("/update-weight", this.updateWeightHandler.bind(this)); 
+    this.router.post("/graphs/simulate", validateSimulationMiddleware, this.simulateGraph.bind(this));
   }
   private getGraphs = async (req: Request, res: Response) => {
   try {
@@ -53,6 +55,16 @@ private async updateWeightHandler(req: Request, res: Response) {
   console.error("Errore aggiornamento peso:", error.message || error);
   res.status(500).json({ error: "Errore aggiornamento peso", details: error.message || error });
 
+  }
+}
+private async simulateGraph(req: Request, res: Response) {
+  try {
+    const { id, from, to, wStart, wEnd, step } = req.body;
+    const result = await this.mediator.simulateGraph(id, from, to, wStart, wEnd, step);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error: any) {
+    console.error("Errore simulazione:", error.message || error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message || error });
   }
 }
 

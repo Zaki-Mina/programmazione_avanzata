@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Ajv from "ajv";
 import { StatusCodes } from "http-status-codes";
-import graphSchema from "./graphSchema";
+import { graphSchema } from "./graphSchema";
 
 const ajv = new Ajv({ allErrors: true });
 const validate = ajv.compile(graphSchema);

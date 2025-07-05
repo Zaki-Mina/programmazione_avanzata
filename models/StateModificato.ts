@@ -22,7 +22,7 @@ class StateModificato implements GraphState {
       throw new Error(`Arco da "${from}" a "${to}" non trovato`);
     }
 
-    const previousWeight = parseFloat(rawGraph[from][to] as any); // 🔧 forziamo il tipo
+    const previousWeight = parseFloat(rawGraph[from][to] as any); // per forziare il tipo
     const alpha = getAlpha();
     const updatedWeight = alpha * previousWeight + (1 - alpha) * newWeight;
 
@@ -44,7 +44,7 @@ class StateModificato implements GraphState {
 ==============================
 `);
 
-    return updatedWeight; // 🔧 restituisco il peso aggiornato
+    return updatedWeight; // per restituire il peso aggiornato
   }
 
 

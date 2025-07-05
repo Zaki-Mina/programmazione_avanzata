@@ -9,21 +9,21 @@ export class ConcreteGraphMediator implements Mediator {
     return graph.esegui(start, goal);
   }
 
-  async createGraph(data: object) {
-  const entity = await GraphEntity.create({ data });
+ async createGraph(data: { nome: string, struttura: object }) {
+  const existing = await GraphEntity.findOne({ where: { nome: data.nome } });
+  if (existing) throw new Error("Grafo con lo stesso nome già esistente");
 
+  const entity = await GraphEntity.create({ nome: data.nome, data: data.struttura });
   const model = new GraphModel();
   await model.inizializza(entity.id);
-  await model.calcolaCosto(); 
- const updatedEntity = await GraphEntity.findByPk(entity.id);
-if (!updatedEntity) throw new Error("Errore interno: grafo non trovato dopo creazione.");
+  await model.calcolaCosto();
+  
+  const updated = await GraphEntity.findByPk(entity.id);
+  if (!updated) throw new Error("Errore interno: grafo non trovato dopo creazione");
 
-return {
-  id: updatedEntity.id,
-  stato: updatedEntity.stato,
-  costo: updatedEntity.costo
-};
+  return { id: updated.id, stato: updated.stato, costo: updated.costo };
 }
+
 
 
   async getAllGraphs() {
@@ -49,6 +49,12 @@ return {
     await graph.inizializza(id);
     return await graph.calcolaCosto(); 
   }
+  async simulateGraph(id: number, from: string, to: string, wStart: number, wEnd: number, step: number) {
+  const graph = new GraphModel();
+  await graph.inizializza(id);
+  return graph.simula(from, to, wStart, wEnd, step);
+}
+
 }
 
 export default ConcreteGraphMediator;

@@ -3,6 +3,7 @@ import { GraphState } from "../interfaces/graphState";
 import StateCreato from "./StateCreato";
 import StateModificato from "./StateModificato";
 import StateInEsecuzione from "./StateInEsecuzione";
+import StateSimulazione from "./StateSimulazione";
 
 export default class GraphModel {
   
@@ -32,12 +33,15 @@ export default class GraphModel {
     case "InEsecuzione":
       this.state = new StateInEsecuzione(this);
       break;
+    case "Simulazione":
+      this.state = new StateSimulazione(this);
+      break;
     default:
       throw new Error("Stato non gestito: " + nuovoStato);
   }
 }
 
-  // Inizializza lo stato attuale ( recuperare lo stato reale dal database)
+  // per inizializzare lo stato attuale ( recuperare lo stato reale dal database)
   async inizializza(id: number) {
   this.id = id;
 
@@ -66,7 +70,7 @@ async getAll() {
     return this.state.getState();
   }
 
-  // Azione: eseguire un percorso (es. algoritmo di Dijkstra)
+  //eseguire un percorso (algoritmo di Dijkstra)
  async esegui(start: string, goal: string) {
   if (this.getStato() !== "InEsecuzione") {
     this.transizione("InEsecuzione");
@@ -80,7 +84,7 @@ async getAll() {
 
 
 
-  // Azione: aggiornare un peso tra due nodi
+  // per aggiornare un peso tra due nodi
 async updateWeight(from: string, to: string, newWeight: number): Promise<number> {
   const statoAttuale = this.getStato();
 
@@ -96,8 +100,53 @@ async updateWeight(from: string, to: string, newWeight: number): Promise<number>
 }
 
 
-  // Azione: simulare variazioni di peso
-  async simulateWeight(from: string, to: string, wStart: number, wEnd: number, step: number) {
-    return await this.state.simulate(from, to, wStart, wEnd, step);
+  // per simulare variazioni di peso
+async simula(from: string, to: string, wStart: number, wEnd: number, step: number) {
+  if (this.getStato() !== "Simulazione") {
+    this.transizione("Simulazione");
+    await GraphEntity.update(
+      { stato: "Simulazione" },
+      { where: { id: this.id } }
+    );
   }
+
+  const rawGraph = await this.getRawGraph();
+  const Graph = require('node-dijkstra');
+
+  const results: { peso: number, percorso: string[], costo: number }[] = [];
+  let bestResult: { peso: number, percorso: string[], costo: number } | null = null;
+
+  for (let w = wStart; w <= wEnd; w += step) {
+    const tempGraph = JSON.parse(JSON.stringify(rawGraph)); // deep copy per ogni simulazione
+
+    if (tempGraph[from] && tempGraph[from][to] !== undefined) {
+      tempGraph[from][to] = w;
+    } else {
+      continue; // salta se l'arco non esiste
+    }
+
+    const g = new Graph(tempGraph);
+    const result = g.path(from, to, { cost: true });
+
+    if (result) {
+      const record = {
+        peso: parseFloat(w.toFixed(2)),
+        percorso: result.path,
+        costo: result.cost
+      };
+
+      results.push(record);
+
+      if (!bestResult || record.costo < bestResult.costo) {
+        bestResult = record;
+      }
+    }
+  }
+
+  return {
+    results,
+    best: bestResult
+  };
+}
+
 }
