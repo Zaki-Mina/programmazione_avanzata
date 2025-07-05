@@ -4,6 +4,8 @@ import GraphController from "./controllers/GraphController";
 import ConcreteGraphMediator from "./controllers/ConcreteGraphMediator";
 import GraphEntity from "./db/GraphEntity";
 import sequelize from "./db/sequelize"; 
+import jsonErrorHandler from "./middlewares/jsonErrorHandler";
+
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -11,7 +13,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-// Middleware
+// Middleware per il parsing JSON
 app.use(bodyParser.json());
 
 // Inizializza Mediator e Controller
@@ -21,6 +23,8 @@ graphController.setMediator(mediator);
 
 // Registra le rotte
 app.use("/", graphController.router);
+// Middleware globale per gestire JSON malformati
+app.use(jsonErrorHandler);
 
 //  Sviluppo: reset completo del DB
 sequelize

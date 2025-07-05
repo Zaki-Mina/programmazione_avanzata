@@ -67,19 +67,33 @@ async getAll() {
   }
 
   // Azione: eseguire un percorso (es. algoritmo di Dijkstra)
-  async esegui(start: string, goal: string) {
-    return await this.state.execute(start, goal);
+ async esegui(start: string, goal: string) {
+  if (this.getStato() !== "InEsecuzione") {
+    this.transizione("InEsecuzione");
+    await GraphEntity.update(
+      { stato: "InEsecuzione" },
+      { where: { id: this.id } }
+    );
   }
+  return await this.state.execute(start, goal);
+}
+
+
 
   // Azione: aggiornare un peso tra due nodi
 async updateWeight(from: string, to: string, newWeight: number): Promise<number> {
-  // DELEGA al GraphState corrente (StateModificato)
-  const updated = await this.state.updateWeight(from, to, newWeight);
-  // facoltativo: se vuoi tenere traccia del nuovo stato nel modello
-  this.transizione("Modificato");
-  return updated;
-}
+  const statoAttuale = this.getStato();
 
+  if (statoAttuale === "InEsecuzione") {
+    throw new Error("Non puoi modificare un grafo in esecuzione.");
+  }
+
+  if (statoAttuale !== "Modificato") {
+    this.transizione("Modificato");
+  }
+
+  return await this.state.updateWeight(from, to, newWeight);
+}
 
 
   // Azione: simulare variazioni di peso
