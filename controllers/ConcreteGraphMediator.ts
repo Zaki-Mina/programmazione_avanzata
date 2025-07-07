@@ -2,6 +2,8 @@ import GraphEntity from "../db/GraphEntity";
 import GraphModel from "../models/GraphModel";
 import { Mediator } from "../interfaces/mediatorInterface";
 
+import User from "../models/User";
+
 export class ConcreteGraphMediator implements Mediator {
   async executeGraph(id: number, start: string, goal: string) {
     const graph = new GraphModel();
@@ -54,7 +56,17 @@ export class ConcreteGraphMediator implements Mediator {
   await graph.inizializza(id);
   return graph.simula(from, to, wStart, wEnd, step);
 }
-
+ async rechargeUserTokens(email: string, tokens: number) {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      const err = new Error("Utente non trovato");
+      // @ts-ignore
+      err.statusCode = 404;
+      throw err;
+    }
+    user.tokens = tokens;
+    await user.save();
+    return user;
+  }
 }
-
 export default ConcreteGraphMediator;

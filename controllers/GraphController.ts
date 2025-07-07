@@ -1,74 +1,152 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import BaseController from "./BaseController";
 import { Mediator } from "../interfaces/mediatorInterface";
 import validateGraphMiddleware from "../validations/validateGraph";
 import validateSimulationMiddleware from "../validations/validateSimulation";
 import { StatusCodes } from "http-status-codes";
+import { verifyToken } from "../middlewares/authMiddleware";
+import { isAdmin } from "../middlewares/adminMiddleware";
+import { hasEnoughCredit } from "../middlewares/checkCredit";
 
-class GraphController extends BaseController {
+export default class GraphController extends BaseController {
   public router: Router;
-  protected mediator: Mediator; 
-
+  protected mediator: Mediator;
 
   constructor(mediator: Mediator) {
     super();
-    this.mediator = mediator; 
+    this.mediator = mediator;
     this.router = Router();
     this.initializeRoutes();
   }
 
-  private initializeRoutes() {
-    this.router.post("/graphs/execute", this.executeGraph);
-    this.router.post("/graphs/create", validateGraphMiddleware, this.createGraph.bind(this));
+  private initializeRoutes(): void {
+    this.router.post(
+      "/graphs/create",
+      verifyToken,
+      hasEnoughCredit,
+      validateGraphMiddleware,
+      this.createGraph
+    );
+
+    this.router.post(
+      "/graphs/execute",
+      verifyToken,
+      hasEnoughCredit,
+      this.executeGraph
+    );
+
+    this.router.post(
+      "/update-weight",
+      verifyToken,
+      hasEnoughCredit,
+      this.updateWeightHandler
+    );
+
+    this.router.post(
+      "/graphs/simulate",
+      verifyToken,
+      hasEnoughCredit,
+      validateSimulationMiddleware,
+      this.simulateGraph
+    );
+
     this.router.get("/graphs", this.getGraphs);
-    this.router.post("/update-weight", this.updateWeightHandler.bind(this)); 
-    this.router.post("/graphs/simulate", validateSimulationMiddleware, this.simulateGraph.bind(this));
+
+    // recharge (solo admin)
+    this.router.post(
+      "/users/admin/recharge",
+      verifyToken,
+      isAdmin,
+      this.rechargeUserTokens
+    );
   }
-  private getGraphs = async (req: Request, res: Response) => {
-  try {
-    const result = await this.mediator.getAllGraphs();
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Errore nel recupero dei grafi:", error);
-    res.status(500).json({ error: "Errore nel recupero dei grafi." });
-  }
-};
 
-  private createGraph = async (req: Request, res: Response) => {
-  const data = req.body;
-  const result = await this.mediator.createGraph(data);
-  res.status(201).json(result);
-};
-
-
-  private executeGraph = async (req: Request, res: Response) => {
-    const { id, start, goal } = req.body;
-    const result = await this.mediator.executeGraph(id, start, goal);
-    res.status(200).json(result);
+  private getGraphs = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const data = await this.mediator.getAllGraphs();
+      res.status(200).json(data);
+    } catch (err) {
+      next(err);
+    }
   };
-private async updateWeightHandler(req: Request, res: Response) {
-  const { id, from, to, newWeight } = req.body;
-  try {
-    const result = await this.mediator.updateWeight(id, from, to, newWeight);
-    res.status(200).json(result);
-  } catch (error: any) {
-  console.error("Errore aggiornamento peso:", error.message || error);
-  res.status(500).json({ error: "Errore aggiornamento peso", details: error.message || error });
 
-  }
+  private createGraph = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const result = await this.mediator.createGraph(req.body);
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  private executeGraph = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id, start, goal } = req.body;
+      const result = await this.mediator.executeGraph(id, start, goal);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  private updateWeightHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id, from, to, newWeight } = req.body;
+      await this.mediator.updateWeight(id, from, to, newWeight);
+      res.status(200).json({ message: "Peso aggiornato correttamente" });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  private simulateGraph = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id, from, to, wStart, wEnd, step } = req.body;
+      const result = await this.mediator.simulateGraph(
+        id,
+        from,
+        to,
+        wStart,
+        wEnd,
+        step
+      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  private rechargeUserTokens = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { email, tokens } = req.body;
+      const user = await this.mediator.rechargeUserTokens(email, tokens);
+      res.status(200).json({ message: `Credito aggiornato a ${user.tokens}` });
+    } catch (err: any) {
+      next(err);
+    }
+  };
 }
-private async simulateGraph(req: Request, res: Response) {
-  try {
-    const { id, from, to, wStart, wEnd, step } = req.body;
-    const result = await this.mediator.simulateGraph(id, from, to, wStart, wEnd, step);
-    res.status(StatusCodes.OK).json(result);
-  } catch (error: any) {
-    console.error("Errore simulazione:", error.message || error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message || error });
-  }
-}
-
-
-}
-
-export default GraphController;
