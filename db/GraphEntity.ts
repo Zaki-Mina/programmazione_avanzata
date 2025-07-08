@@ -1,10 +1,11 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "./sequelize";
 
+//Definisce la struttura di un oggetto grafo con i tipi TypeScript
 interface GraphAttributes {
   id: number;
   stato: string;
-  data: object;
+  data: object; //Oggetto JSON che conterrà la struttura del grafo
   costo: number;
   nome: string;
 }

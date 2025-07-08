@@ -1,7 +1,7 @@
 import sequelize from "./sequelize";
 import User from "../models/User";
 
-async function seed() {
+async function seed() { //per incronizzare il database
   await sequelize.sync({ force: true });
   console.log("DB ripulito");
 

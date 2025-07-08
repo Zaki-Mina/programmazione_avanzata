@@ -4,13 +4,17 @@ import { Mediator } from "../interfaces/mediatorInterface";
 
 import User from "../models/User";
 
+//Implementazione concreta dell'interfaccia Mediator
 export class ConcreteGraphMediator implements Mediator {
+
+  //esegue un algoritmo su un grafo
   async executeGraph(id: number, start: string, goal: string) {
     const graph = new GraphModel();
     await graph.inizializza(id);
     return graph.esegui(start, goal);
   }
 
+  //crea un nuovo grafo
  async createGraph(data: { nome: string, struttura: object }) {
   const existing = await GraphEntity.findOne({ where: { nome: data.nome } });
   if (existing) throw new Error("Grafo con lo stesso nome già esistente");
@@ -27,18 +31,19 @@ export class ConcreteGraphMediator implements Mediator {
 }
 
 
-
+//recupera tutti i grafi
   async getAllGraphs() {
     const graph = new GraphModel();
     return graph.getAll();
   }
 
+  //aggiorna il peso di un arco
   async updateWeight(id: number, from: string, to: string, newWeight: number): Promise<void> {
     const graph = new GraphModel();
     await graph.inizializza(id);
     await graph.updateWeight(from, to, newWeight);
   }
-
+//cambia lo stato di un grafo
   async setState(id: number, state: string): Promise<void> {
     const graph = await GraphEntity.findByPk(id);
     if (!graph) throw new Error("Grafo non trovato");
@@ -46,16 +51,19 @@ export class ConcreteGraphMediator implements Mediator {
     await graph.save();
   }
 
+ //calcola il costo di un grafo
   async getGraphCost(id: number): Promise<number> {
     const graph = new GraphModel();
     await graph.inizializza(id);
     return await graph.calcolaCosto(); 
   }
+  //simula variazioni di peso
   async simulateGraph(id: number, from: string, to: string, wStart: number, wEnd: number, step: number) {
   const graph = new GraphModel();
   await graph.inizializza(id);
   return graph.simula(from, to, wStart, wEnd, step);
 }
+//ricarica i token di un utente (solo admin)
  async rechargeUserTokens(email: string, tokens: number) {
     const user = await User.findOne({ where: { email } });
     if (!user) {

@@ -1,6 +1,7 @@
 import { ErrorRequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 
+// la Creazione un middleware con la firma standard di Express per la gestione errori
 const jsonErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   // 1) JSON malformato
   if (err instanceof SyntaxError && "body" in err) {

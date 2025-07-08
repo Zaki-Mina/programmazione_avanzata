@@ -5,6 +5,7 @@ import StateModificato from "./StateModificato";
 import StateInEsecuzione from "./StateInEsecuzione";
 import StateSimulazione from "./StateSimulazione";
 
+//contiene lo stato corrente e delega le operazioni
 export default class GraphModel {
   
  async calcolaCosto(): Promise<number> {
@@ -72,7 +73,7 @@ async getAll() {
 
   //eseguire un percorso (algoritmo di Dijkstra)
  async esegui(start: string, goal: string) {
-  if (this.getStato() !== "InEsecuzione") {
+  if (this.getStato() !== "InEsecuzione") { //per controllare lo stato corrente 
     this.transizione("InEsecuzione");
     await GraphEntity.update(
       { stato: "InEsecuzione" },
