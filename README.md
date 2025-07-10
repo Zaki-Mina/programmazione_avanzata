@@ -51,7 +51,7 @@ Questo progetto backend ha l'obiettivo di fornire un'infrastruttura robusta e si
 ##  Lo schema E-R 
  ![E-R](./Immagini/er.png)
  ##  Analisi dei requisiti 
-![requisiti](./Immagini/requisiti.png)
+![requisiti](./Immagini\requisiti.png)
 ##  Requisiti Funzionali
 
 - **RF1- creare grafo**
@@ -81,7 +81,8 @@ Questo progetto backend ha l'obiettivo di fornire un'infrastruttura robusta e si
   - Il sistema richiede l'autenticazione degli operatori attraverso JSON Web Token (JWT) per garantire un accesso sicuro e controllato
 - **RNF2- Validazione delle Richieste**
   - Il sistema deve effettuare la validazione delle richieste degli operatori per garantire che i dati forniti siano conformi ai requisiti.
-  - **RNF3- Tecnologia**
+
+- **RNF3- Tecnologia**
 Il sistema deve utilizzaare tecnologie specifiche (Node.js, Express,TypeScript,DBMS) per implementare in modo efficiente i requisiti funzionali e non funzionali specificati.
 
 
