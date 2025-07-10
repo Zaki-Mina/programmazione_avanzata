@@ -1,9 +1,15 @@
+// states/StateSimulazione.ts
 import { GraphState } from "../interfaces/graphState";
 import GraphModel from "./GraphModel";
 import GraphEntity from "../db/GraphEntity";
+import Logger from "../utils/Logger";
 
 class StateSimulazione implements GraphState {
-  constructor(private context: GraphModel) {}
+  private logger: typeof Logger;
+
+  constructor(private context: GraphModel, logger: typeof Logger) {
+    this.logger = logger;
+  }
 
   getState(): string {
     return "Simulazione";
@@ -19,15 +25,22 @@ class StateSimulazione implements GraphState {
 
   async simulate(from: string, to: string, startWeight: number, endWeight: number, step: number) {
     const dbGraph = await GraphEntity.findByPk(this.context.id);
-    if (!dbGraph) throw new Error("Grafo non trovato");
+    if (!dbGraph) {
+      this.logger.error(`Grafo ${this.context.id} non trovato`);
+      throw new Error("Grafo non trovato");
+    }
 
     const data = dbGraph.data as Record<string, Record<string, number>>;
+
     if (!data[from] || typeof data[from][to] !== "number") {
+      this.logger.error(`Arco da ${from} a ${to} non trovato`);
       throw new Error(`Arco da ${from} a ${to} non trovato`);
     }
 
     const originalWeight = data[from][to];
     const results: Array<{ peso: number; costo: number }> = [];
+
+    this.logger.info(`Simulazione peso su arco ${from} → ${to}, range: ${startWeight} → ${endWeight}, step: ${step}`);
 
     for (let w = startWeight; w <= endWeight; w += step) {
       data[from][to] = w;
@@ -40,6 +53,8 @@ class StateSimulazione implements GraphState {
     }
 
     data[from][to] = originalWeight;
+
+    this.logger.info(`Simulazione completata su ${results.length} varianti`);
     return results;
   }
 }

@@ -2,11 +2,11 @@ import express from "express";
 import bodyParser from "body-parser";
 import jsonErrorHandler from "./middlewares/jsonErrorHandler";
 import dotenv from "dotenv";
+import SequelizeSingleton from "./db/sequelize";
+const sequelize = SequelizeSingleton.getInstance();
 
-import sequelize from "./db/sequelize";
 import User from "./models/User";
 import GraphController from "./controllers/GraphController";
-import ConcreteGraphMediator from "./controllers/ConcreteGraphMediator";
 
 dotenv.config();
 const app = express();
@@ -26,18 +26,23 @@ app.get("/users", async (_req, res, next) => {
 });
 
 // 3) rotte grafo
-const mediator = new ConcreteGraphMediator();
-const graphController = new GraphController(mediator);
+const graphController = new GraphController();
 app.use("/", graphController.router);
 
 // 4) error handler
 app.use(jsonErrorHandler);
 
-// 5) avvio del server (non cancellare nulla in DB)
-sequelize.authenticate()           // solo per verificare la connessione
-  .then(() => console.log("DB connesso"))
-  .catch(console.error);
+// 5) avvio del server 
+sequelize.authenticate()
+  .then(async () => {
+    console.log("DB connesso");
 
-app.listen(PORT, () => {
-  console.log(` http://localhost:${PORT}`);
-});
+    await sequelize.sync();
+
+    app.listen(PORT, () => {
+      console.log(`Server avviato su http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Errore di connessione al DB:", err);
+  });

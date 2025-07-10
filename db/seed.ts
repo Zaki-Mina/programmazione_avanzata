@@ -1,13 +1,16 @@
-import sequelize from "./sequelize";
+import SequelizeSingleton from "./sequelize";
+const sequelize = SequelizeSingleton.getInstance();
 import User from "../models/User";
+import GraphEntity from "./GraphEntity";
 
 async function seed() { //per incronizzare il database
+  const TOKENS=50
   await sequelize.sync({ force: true });
   console.log("DB ripulito");
 
   await User.bulkCreate([
-    { id: 1, email: "admin@example.com", password: "admin123", role: "admin", tokens: 9999 },
-    { id: 2, email: "user1@example.com", password: "user123", role: "user", tokens: 5 },
+    { id: 1, email: "admin@example.com", role: "admin", tokens: TOKENS },
+    { id: 2, email: "user1@example.com", role: "user", tokens: TOKENS },
   ]);
 
   const users = await User.findAll();

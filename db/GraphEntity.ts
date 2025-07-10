@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "./sequelize";
+import SequelizeSingleton from "./sequelize";
+const sequelize = SequelizeSingleton.getInstance();
 
 //Definisce la struttura di un oggetto grafo con i tipi TypeScript
 interface GraphAttributes {
@@ -8,6 +9,8 @@ interface GraphAttributes {
   data: object; //Oggetto JSON che conterrà la struttura del grafo
   costo: number;
   nome: string;
+  userId: number; 
+ 
 }
 
 // tipi opzionali
@@ -18,6 +21,7 @@ class GraphEntity extends Model<GraphAttributes, GraphCreationAttributes> implem
   public data!: object;
   public costo!: number;
   public nome!: string;
+  public userId!: number;
 }
 
 GraphEntity.init(
@@ -25,25 +29,29 @@ GraphEntity.init(
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     nome: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
     stato: {
       type: DataTypes.STRING,
-      defaultValue: "Creato"
+      defaultValue: "Creato",
     },
     data: {
-      type: DataTypes.JSON
+      type: DataTypes.JSON,
     },
     costo: {
       type: DataTypes.FLOAT,
       allowNull: false,
-      defaultValue: 0
-    }
+      defaultValue: 0,
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }, 
   },
   {
     sequelize,

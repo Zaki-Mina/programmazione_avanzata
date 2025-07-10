@@ -1,11 +1,21 @@
 import path from "path";
 import { Sequelize } from "sequelize";
 
-// per Configurare e esportare l'istanza di connessione a Sequelize.
-const sequelize = new Sequelize({ //crea una nuova istanza di Sequelize per SQLite
-  dialect: "sqlite", 
-  storage: path.resolve(__dirname, "../database.sqlite"), //Specifica il path del file database 
-  logging: false,
-});
+class SequelizeSingleton {
+  private static instance: Sequelize; //Variabile statica che conserva l'unica istanza di Sequelize
 
-export default sequelize;
+  private constructor() {} // Previene creazione diretta
+
+  public static getInstance(): Sequelize { //Accessibile senza istanziare la classe
+    if (!SequelizeSingleton.instance) {
+      SequelizeSingleton.instance = new Sequelize({ //la creazione di nuove istanze
+        dialect: "sqlite",
+        storage: path.resolve(__dirname, "../database.sqlite"),
+        logging: false,
+      });
+    }
+    return SequelizeSingleton.instance;
+  }
+}
+
+export default SequelizeSingleton;
